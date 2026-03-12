@@ -1,0 +1,71 @@
+# MacOS
+.DS_Store
+
+# Node
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# React Native
+#
+# Android
+android/build/
+android/app/build/
+android/.gradle/
+android/local.properties
+android/*.iml
+
+# iOS
+ios/Pods/
+ios/build/
+ios/*.xcodeproj/project.xcworkspace
+ios/*.xcodeproj/xcuserdata
+
+# ExecuTorch / Python
+.executorch-build/
+__pycache__/
+*.pyc
+
+# Project specific
+dist/
+models/
+*.pte
+
+*.log
+*.bak
+*.backup.*
+metro_pid*
+
+# Nitrogen
+nitrogen/generated/
+
+# C++ Build
+.cxx/
+android/.cxx/
+
+# Expo / Metro
+.expo/
+*.jks
+*.p8
+*.p12
+*.key
+*.pem
+
+# Test assets
+example/test_image.jpg
+
+# Expo Generated App Native Folders
+example/ios/
+example/android/
+example/dist/
+example/web-build/
+example/metro_*_pid
+example/metro_pid
+
+# Binaries (managed by setup-binaries.js)
+android/libs/*.aar
+android/src/main/jniLibs/
+ios/Frameworks/
+
+# notebooks
+*.ipynb

@@ -1,0 +1,6 @@
+{
+  "platforms": ["ios", "android"],
+  "ios": {
+    "podspecPath": "react-native-siglip.podspec"
+  }
+}

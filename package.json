@@ -1,0 +1,67 @@
+{
+  "name": "react-native-siglip",
+  "version": "0.1.0",
+  "description": "General-purpose SigLIP embeddings for React Native via Nitro + ExecuTorch.",
+  "main": "src/index",
+  "types": "src/index.ts",
+  "source": "src/index",
+  "react-native": "src/index",
+  "files": [
+    "src",
+    "cpp",
+    "ios",
+    "android",
+    "nitrogen",
+    "nitro.json",
+    "react-native-siglip.podspec",
+    "app.plugin.js",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "postinstall": "node scripts/setup-binaries.js",
+    "test": "jest",
+    "typecheck": "tsc --noEmit",
+    "release": "release-it"
+  },
+  "keywords": [
+    "react-native",
+    "siglip",
+    "executorch",
+    "nitro-modules"
+  ],
+  "license": "MIT",
+  "peerDependencies": {
+    "react": "*",
+    "react-native": "*",
+    "react-native-nitro-modules": "^0.34.0"
+  },
+  "devDependencies": {
+    "@expo/config-plugins": "^9.0.0",
+    "@types/jest": "^29.5.14",
+    "@types/node": "^22.10.5",
+    "jest": "^29.7.0",
+    "nitrogen": "^0.34.0",
+    "release-it": "^19.2.4",
+    "ts-jest": "^29.4.6",
+    "typescript": "^5.7.3"
+  },
+  "release-it": {
+    "$schema": "https://unpkg.com/release-it/schema/release-it.json",
+    "git": {
+      "commitMessage": "chore: release v${version}",
+      "tagName": "v${version}",
+      "tagAnnotation": "Release v${version}"
+    },
+    "github": {
+      "release": true,
+      "releaseName": "v${version}"
+    },
+    "npm": {
+      "publish": true
+    },
+    "hooks": {
+      "before:init": ["npm test", "npm run typecheck"]
+    }
+  }
+}

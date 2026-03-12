@@ -1,0 +1,154 @@
+# Build and release ExecuTorch binaries for react-native-siglip
+# Triggered on version tags (e.g., v0.1.0)
+#
+# NOTE: QNN delegate requires Qualcomm Hexagon SDK (proprietary).
+# This CI builds XNNPACK-only for Android. Build QNN variant locally.
+
+name: Build ExecuTorch Binaries
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      executorch_version:
+        description: "ExecuTorch version/tag"
+        required: false
+        default: "v1.1.0"
+
+env:
+  EXECUTORCH_VERSION: ${{ github.event.inputs.executorch_version || 'v1.1.0' }}
+
+jobs:
+  # ============================================================================
+  # iOS Build (requires macOS)
+  # ============================================================================
+  build-ios:
+    name: Build iOS xcframework
+    runs-on: macos-14
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Setup Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: "15.2"
+
+      - name: Build iOS frameworks
+        run: |
+          chmod +x scripts/build-executorch.sh
+          ./scripts/build-executorch.sh ios
+        env:
+          EXECUTORCH_VERSION: ${{ env.EXECUTORCH_VERSION }}
+
+      - name: Upload iOS artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: executorch-ios
+          path: dist/ios/
+          retention-days: 30
+
+  # ============================================================================
+  # Android Build (XNNPACK only - QNN requires proprietary SDK)
+  # ============================================================================
+  build-android:
+    name: Build Android AAR (XNNPACK)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "17"
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Setup Android NDK
+        uses: nttld/setup-ndk@v1
+        id: setup-ndk
+        with:
+          ndk-version: r28c
+
+      - name: Build Android AAR
+        run: |
+          chmod +x scripts/build-executorch.sh
+          ./scripts/build-executorch.sh android
+        env:
+          ANDROID_HOME: ${{ env.ANDROID_HOME }}
+          ANDROID_NDK: ${{ steps.setup-ndk.outputs.ndk-path }}
+          EXECUTORCH_VERSION: ${{ env.EXECUTORCH_VERSION }}
+
+      - name: Upload Android artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: executorch-android
+          path: dist/android/
+          retention-days: 30
+
+  # ============================================================================
+  # Create Release
+  # ============================================================================
+  release:
+    name: Create Release
+    needs: [build-ios, build-android]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    permissions:
+      contents: write
+    steps:
+      - name: Download iOS artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: executorch-ios
+          path: dist/ios
+
+      - name: Download Android artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: executorch-android
+          path: dist/android
+
+      - name: Package artifacts
+        run: |
+          cd dist
+          tar -czvf executorch-ios.tar.gz ios/
+          tar -czvf executorch-android.tar.gz android/
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/executorch-ios.tar.gz
+            dist/executorch-android.tar.gz
+          body: |
+            ## ExecuTorch Binaries for react-native-siglip
+
+            **ExecuTorch Version:** ${{ env.EXECUTORCH_VERSION }}
+
+            ### iOS
+            - `executorch.xcframework` - Core runtime
+            - `coreml_backend.xcframework` - CoreML delegate (NPU)
+            - `mps_backend.xcframework` - Metal Performance Shaders (GPU)
+
+            ### Android
+            - `executorch.aar` - Core runtime with XNNPACK (CPU)
+
+            > **Note:** QNN delegate (Qualcomm NPU) must be built locally due to SDK licensing.
+          draft: false
+          prerelease: false
