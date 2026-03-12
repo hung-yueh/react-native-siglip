@@ -70,7 +70,7 @@ setup_executorch() {
   
   if [ ! -d ".venv" ]; then
       log_info "Creating virtual environment with python3.11..."
-      /opt/homebrew/bin/python3.11 -m venv .venv
+      python3.11 -m venv .venv
   fi
   source .venv/bin/activate
   
