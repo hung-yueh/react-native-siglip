@@ -37,6 +37,15 @@ log_info() { echo -e "${GREEN}[INFO]${NC} $1"; }
 log_warn() { echo -e "${YELLOW}[WARN]${NC} $1"; }
 log_error() { echo -e "${RED}[ERROR]${NC} $1" >&2; }
 
+# Portable in-place sed (BSD vs GNU)
+sed_inplace() {
+  if [[ "$(uname)" == "Darwin" ]]; then
+    sed -i '' "$@"
+  else
+    sed -i "$@"
+  fi
+}
+
 # ============================================================================
 # Setup Functions
 # ============================================================================
@@ -123,7 +132,7 @@ build_ios() {
         log_info "build_apple_frameworks.sh already patched."
     else
         log_info "Patching build_apple_frameworks.sh to accept CMAKE_ARGS..."
-        sed -i '' 's/${CMAKE_OPTIONS_OVERRIDE\[@\]:-}/${CMAKE_OPTIONS_OVERRIDE[@]:-} ${CMAKE_ARGS}/' ./scripts/build_apple_frameworks.sh
+        sed_inplace 's/${CMAKE_OPTIONS_OVERRIDE\[@\]:-}/${CMAKE_OPTIONS_OVERRIDE[@]:-} ${CMAKE_ARGS}/' ./scripts/build_apple_frameworks.sh
     fi
 
     # Patch backends/apple/mps/CMakeLists.txt to use host flatc
@@ -131,9 +140,9 @@ build_ios() {
     if [ -f "$MPS_CMAKE" ]; then
         log_info "Patching MPS CMakeLists.txt..."
         # Replace 'flatc --cpp' with '${FLATBUFFERS_FLATC_EXECUTABLE} --cpp'
-        sed -i '' 's/flatc --cpp/${FLATBUFFERS_FLATC_EXECUTABLE} --cpp/' "$MPS_CMAKE"
+        sed_inplace 's/flatc --cpp/${FLATBUFFERS_FLATC_EXECUTABLE} --cpp/' "$MPS_CMAKE"
         # Remove 'DEPENDS flatc' to avoid building/depending on target flatc
-        sed -i '' '/DEPENDS flatc/d' "$MPS_CMAKE"
+        sed_inplace '/DEPENDS flatc/d' "$MPS_CMAKE"
     fi
     
     # Patch backends/xnnpack/CMakeLists.txt to use host flatc
@@ -141,9 +150,9 @@ build_ios() {
     if [ -f "$XNNPACK_CMAKE" ]; then
         log_info "Patching XNNPACK CMakeLists.txt..."
         # Replace 'flatc --cpp' with '${FLATBUFFERS_FLATC_EXECUTABLE} --cpp'
-        sed -i '' 's/flatc --cpp/${FLATBUFFERS_FLATC_EXECUTABLE} --cpp/' "$XNNPACK_CMAKE"
+        sed_inplace 's/flatc --cpp/${FLATBUFFERS_FLATC_EXECUTABLE} --cpp/' "$XNNPACK_CMAKE"
         # Remove 'DEPENDS flatc' to avoid building/depending on target flatc
-        sed -i '' '/DEPENDS flatc/d' "$XNNPACK_CMAKE"
+        sed_inplace '/DEPENDS flatc/d' "$XNNPACK_CMAKE"
     fi
     
     # Patch schema/CMakeLists.txt to use host flatc
@@ -151,9 +160,9 @@ build_ios() {
     if [ -f "$SCHEMA_CMAKE" ]; then
         log_info "Patching schema/CMakeLists.txt..."
         # Replace 'flatc --cpp' with '${FLATBUFFERS_FLATC_EXECUTABLE} --cpp'
-        sed -i '' 's/flatc --cpp/${FLATBUFFERS_FLATC_EXECUTABLE} --cpp/' "$SCHEMA_CMAKE"
+        sed_inplace 's/flatc --cpp/${FLATBUFFERS_FLATC_EXECUTABLE} --cpp/' "$SCHEMA_CMAKE"
         # Remove 'DEPENDS flatc' to avoid building/depending on target flatc
-        sed -i '' '/DEPENDS flatc/d' "$SCHEMA_CMAKE"
+        sed_inplace '/DEPENDS flatc/d' "$SCHEMA_CMAKE"
     fi
 
     # Patch extension/flat_tensor/serialize/CMakeLists.txt to use host flatc
@@ -161,9 +170,9 @@ build_ios() {
     if [ -f "$FLAT_TENSOR_CMAKE" ]; then
         log_info "Patching extension/flat_tensor/serialize/CMakeLists.txt..."
         # Replace 'flatc --cpp' with '${FLATBUFFERS_FLATC_EXECUTABLE} --cpp'
-        sed -i '' 's/flatc --cpp/${FLATBUFFERS_FLATC_EXECUTABLE} --cpp/' "$FLAT_TENSOR_CMAKE"
+        sed_inplace 's/flatc --cpp/${FLATBUFFERS_FLATC_EXECUTABLE} --cpp/' "$FLAT_TENSOR_CMAKE"
         # Remove 'DEPENDS flatc' to avoid building/depending on target flatc
-        sed -i '' '/DEPENDS flatc/d' "$FLAT_TENSOR_CMAKE"
+        sed_inplace '/DEPENDS flatc/d' "$FLAT_TENSOR_CMAKE"
     fi
     
     COREML=ON MPS=ON CMAKE_ARGS="-DFLATBUFFERS_FLATC_EXECUTABLE=$FLATC_PATH" ./scripts/build_apple_frameworks.sh
@@ -288,7 +297,7 @@ build_android() {
         log_info "build_android_library.sh already patched."
     else
         log_info "Patching build_android_library.sh for flatc..."
-        sed -i '' "s|cmake \.|cmake . -DFLATBUFFERS_FLATC_EXECUTABLE=$FLATC_PATH |" ./scripts/build_android_library.sh
+        sed_inplace "s|cmake \.|cmake . -DFLATBUFFERS_FLATC_EXECUTABLE=$FLATC_PATH |" ./scripts/build_android_library.sh
     fi
     
     # Official script handles everything
