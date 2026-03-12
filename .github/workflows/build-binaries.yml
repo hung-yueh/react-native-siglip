@@ -41,6 +41,9 @@ jobs:
         with:
           xcode-version: "15.2"
 
+      - name: Install Python dependencies
+        run: pip install cmake torch torchvision PyYAML certifi requests zstd
+
       - name: Build iOS frameworks
         run: |
           chmod +x scripts/build-executorch.sh
@@ -84,6 +87,9 @@ jobs:
         id: setup-ndk
         with:
           ndk-version: r28c
+
+      - name: Install Python dependencies
+        run: pip install cmake torch torchvision PyYAML certifi requests zstd
 
       - name: Build Android AAR
         run: |
