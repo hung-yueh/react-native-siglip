@@ -1,6 +1,6 @@
 {
   "name": "react-native-siglip",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "General-purpose SigLIP embeddings for React Native via Nitro + ExecuTorch.",
   "main": "src/index",
   "types": "src/index.ts",
@@ -65,7 +65,10 @@
       "publish": true
     },
     "hooks": {
-      "before:init": ["npm test", "npm run typecheck"]
+      "before:init": [
+        "npm test",
+        "npm run typecheck"
+      ]
     }
   }
 }
