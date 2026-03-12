@@ -300,8 +300,8 @@ build_android() {
         sed_inplace "s|cmake \.|cmake . -DFLATBUFFERS_FLATC_EXECUTABLE=$FLATC_PATH |" ./scripts/build_android_library.sh
     fi
     
-    # Official script handles everything
-    sh scripts/build_android_library.sh
+    # Official script handles everything (must use bash, not sh — script uses [[ ]])
+    bash scripts/build_android_library.sh
   else
     log_error "build_android_library.sh not found in ExecuTorch"
     exit 1
